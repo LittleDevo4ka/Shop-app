@@ -1,6 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:id="@+id/wasteid_your_shopping_lists_tv_profile"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your shopping lists"
+        android:textSize="22dp"
+        android:textColor="@color/black"
+
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="20dp"/>
+    
+    <HorizontalScrollView
+        android:id="@+id/wasteid_horizontal_scroll_view_profile"
+
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scrollbars="none"
+
+        app:layout_constraintTop_toBottomOf="@id/wasteid_your_shopping_lists_tv_profile"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/place_for_shopping_lists"
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </HorizontalScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
