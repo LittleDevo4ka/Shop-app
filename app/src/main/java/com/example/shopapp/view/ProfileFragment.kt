@@ -15,6 +15,7 @@ import androidx.appcompat.widget.AppCompatImageButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.marginStart
+import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.*
 import com.example.shopapp.R
 import com.example.shopapp.databinding.*
@@ -123,7 +124,7 @@ class ProfileFragment : Fragment() {
                         }
                     } else {
                         if(logInProfileBinding.logInButtonLogInProfile.isEnabled) {
-                            logInProfileBinding.logInButtonLogInProfile.isEnabled = true
+                            logInProfileBinding.logInButtonLogInProfile.isEnabled = false
                         }
                     }
                 }
@@ -157,9 +158,15 @@ class ProfileFragment : Fragment() {
         })
 
         logInProfileBinding.logInButtonLogInProfile.setOnClickListener{
-            binding.placeForProfile.removeAllViews()
 
-            viewModel.setFragmentNum(3)
+
+            val resultString = viewModel.signInWithEmailAndPassword(emailEditText.text.toString(),
+                passwordEditText.text.toString())
+            if (resultString.isNotEmpty()) {
+                emailEditText.error = resultString
+                passwordEditText.error = resultString
+            }
+
         }
 
 
@@ -170,8 +177,10 @@ class ProfileFragment : Fragment() {
         val registerProfileBinding = RegisterProfileBinding.inflate(layoutInflater,
             binding.placeForProfile, false)
 
-        registerProfileBinding.repeatPasswordLayoutRegisterProfile.isEnabled = false
         val passwordEditText = registerProfileBinding.passwordEdittextRegisterProfile
+        val emailEditText = registerProfileBinding.emailEdittextRegisterProfile
+        val repeatPasswordEditText = registerProfileBinding.repeatPasswordEdittextRegisterProfile
+        registerProfileBinding.repeatPasswordLayoutRegisterProfile.isEnabled = false
         passwordEditText.addTextChangedListener(object: TextWatcher{
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
             }
@@ -198,18 +207,16 @@ class ProfileFragment : Fragment() {
         registerProfileBinding.registerButtonRegisterProfile.isEnabled = false
 
         registerProfileBinding.registerButtonRegisterProfile.setOnClickListener{
-            binding.placeForProfile.removeAllViews()
 
-            binding.backButtonProfile.visibility = View.GONE
-            val params = (binding.wasteidProfileTitleTv.layoutParams as ConstraintLayout.LayoutParams)
-            params.marginStart = ceil(16 * ds).toInt()
-            binding.wasteidProfileTitleTv.layoutParams = params
+            val resultString = viewModel.createUserWithEmailAndPassword(emailEditText.text.toString(),
+            passwordEditText.text.toString())
 
-            viewModel.setFragmentNum(3)
+            if (resultString.isNotEmpty()) {
+                emailEditText.error = resultString
+                passwordEditText.error = resultString
+            }
         }
 
-        val emailEditText = registerProfileBinding.emailEdittextRegisterProfile
-        val repeatPasswordEditText = registerProfileBinding.repeatPasswordEdittextRegisterProfile
         emailEditText.addTextChangedListener(object: TextWatcher{
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
             }
@@ -264,6 +271,7 @@ class ProfileFragment : Fragment() {
     }
 
     private fun addProfile() {
+        binding.placeForProfile.removeAllViews()
 
         val profileBinding = ProfileBinding.inflate(layoutInflater,
             binding.placeForProfile, false)
