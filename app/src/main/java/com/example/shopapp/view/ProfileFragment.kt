@@ -14,12 +14,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.isEmpty
 import androidx.core.view.marginStart
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.*
 import com.example.shopapp.R
 import com.example.shopapp.databinding.*
 import com.example.shopapp.viewModel.AccountViewModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
@@ -101,76 +103,50 @@ class ProfileFragment : Fragment() {
         val logInProfileBinding = LogInProfileBinding.inflate(layoutInflater,
             binding.placeForProfile, false)
 
+        val passwordEditText = logInProfileBinding.passwordEdittextLogInProfile
+        val emailEditText = logInProfileBinding.emailEdittextLogInProfile
+
+        emailEditText.doOnTextChanged { text, _, _, _ ->
+            if (text != null) {
+                if (text.isNotEmpty() && passwordEditText.text.toString().isNotEmpty())  {
+                    if(!logInProfileBinding.logInButtonLogInProfile.isEnabled) {
+                        logInProfileBinding.logInButtonLogInProfile.isEnabled = true
+                    }
+                } else {
+                    if(logInProfileBinding.logInButtonLogInProfile.isEnabled) {
+                        logInProfileBinding.logInButtonLogInProfile.isEnabled = false
+                    }
+                }
+            }
+        }
+        passwordEditText.doOnTextChanged { text, _, _, _ ->
+            if (text != null) {
+                if(text.isNotEmpty() && emailEditText.text.toString().isNotEmpty()) {
+                    if(!logInProfileBinding.logInButtonLogInProfile.isEnabled) {
+                        logInProfileBinding.logInButtonLogInProfile.isEnabled = true
+                    }
+                } else {
+                    if(logInProfileBinding.logInButtonLogInProfile.isEnabled) {
+                        logInProfileBinding.logInButtonLogInProfile.isEnabled = false
+                    }
+                }
+            }
+        }
+
+        logInProfileBinding.logInButtonLogInProfile.isEnabled = false
+        logInProfileBinding.logInButtonLogInProfile.setOnClickListener{
+
+            viewModel.signInWithEmailAndPassword(emailEditText.text.toString(),
+                passwordEditText.text.toString(),
+            logInProfileBinding.emailLayoutLogInProfile, logInProfileBinding.passwordLayoutLogInProfile)
+        }
+
         binding.backButtonProfile.visibility = View.VISIBLE
         val params = (binding.wasteidProfileTitleTv.layoutParams as ConstraintLayout.LayoutParams)
         params.marginStart = ceil(64 * ds).toInt()
         binding.wasteidProfileTitleTv.layoutParams = params
 
         binding.placeForProfile.addView(logInProfileBinding.root)
-
-        logInProfileBinding.logInButtonLogInProfile.isEnabled = false
-
-        val passwordEditText = logInProfileBinding.passwordEdittextLogInProfile
-        val emailEditText = logInProfileBinding.emailEdittextLogInProfile
-        emailEditText.addTextChangedListener(object: TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (p0 != null) {
-                    if (p0.isNotEmpty() && passwordEditText.text.toString().isNotEmpty())  {
-                        if(!logInProfileBinding.logInButtonLogInProfile.isEnabled) {
-                            logInProfileBinding.logInButtonLogInProfile.isEnabled = true
-                        }
-                    } else {
-                        if(logInProfileBinding.logInButtonLogInProfile.isEnabled) {
-                            logInProfileBinding.logInButtonLogInProfile.isEnabled = false
-                        }
-                    }
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-            }
-
-        })
-        passwordEditText.addTextChangedListener(object: TextWatcher{
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (p0 != null) {
-                    if(p0.isNotEmpty() && emailEditText.text.toString().isNotEmpty()) {
-                        if(!logInProfileBinding.logInButtonLogInProfile.isEnabled) {
-                            logInProfileBinding.logInButtonLogInProfile.isEnabled = true
-                        }
-                    } else {
-                        if(logInProfileBinding.logInButtonLogInProfile.isEnabled) {
-                            logInProfileBinding.logInButtonLogInProfile.isEnabled = false
-                        }
-                    }
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-            }
-
-        })
-
-        logInProfileBinding.logInButtonLogInProfile.setOnClickListener{
-
-
-            val resultString = viewModel.signInWithEmailAndPassword(emailEditText.text.toString(),
-                passwordEditText.text.toString())
-            if (resultString.isNotEmpty()) {
-                emailEditText.error = resultString
-                passwordEditText.error = resultString
-            }
-
-        }
-
-
-
     }
 
     private fun addRegisterProfile() {
@@ -181,84 +157,70 @@ class ProfileFragment : Fragment() {
         val emailEditText = registerProfileBinding.emailEdittextRegisterProfile
         val repeatPasswordEditText = registerProfileBinding.repeatPasswordEdittextRegisterProfile
         registerProfileBinding.repeatPasswordLayoutRegisterProfile.isEnabled = false
-        passwordEditText.addTextChangedListener(object: TextWatcher{
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
 
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if(p0 != null) {
-                    if(p0.isNotEmpty()) {
-                        registerProfileBinding.repeatPasswordLayoutRegisterProfile.isEnabled = true
-                    } else {
-                        registerProfileBinding.repeatPasswordEdittextRegisterProfile
-                            .setText("")
-
-                        registerProfileBinding.repeatPasswordLayoutRegisterProfile
-                            .isEnabled = false
-                    }
+        emailEditText.doOnTextChanged { text, _, _, _ ->
+            if (text != null) {
+                if (registerProfileBinding.emailLayoutRegisterProfile.error != null) {
+                    registerProfileBinding.emailLayoutRegisterProfile.error = null
                 }
-            }
 
-            override fun afterTextChanged(p0: Editable?) {
-            }
-
-        })
-
-        registerProfileBinding.registerButtonRegisterProfile.isEnabled = false
-
-        registerProfileBinding.registerButtonRegisterProfile.setOnClickListener{
-
-            val resultString = viewModel.createUserWithEmailAndPassword(emailEditText.text.toString(),
-            passwordEditText.text.toString())
-
-            if (resultString.isNotEmpty()) {
-                emailEditText.error = resultString
-                passwordEditText.error = resultString
-            }
-        }
-
-        emailEditText.addTextChangedListener(object: TextWatcher{
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (p0 != null) {
-                    if (p0.isNotEmpty() && repeatPasswordEditText.text.toString().isNotEmpty()) {
-                        if(!registerProfileBinding.registerButtonRegisterProfile.isEnabled) {
-                            registerProfileBinding.registerButtonRegisterProfile.isEnabled = true
-                        }
-                    } else {
-                        if(registerProfileBinding.registerButtonRegisterProfile.isEnabled) {
-                            registerProfileBinding.registerButtonRegisterProfile.isEnabled = false
-                        }
+                if (text.isNotEmpty() && repeatPasswordEditText.text.toString().isNotEmpty()) {
+                    if(!registerProfileBinding.registerButtonRegisterProfile.isEnabled) {
+                        registerProfileBinding.registerButtonRegisterProfile.isEnabled = true
                     }
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-            }
-
-        })
-        repeatPasswordEditText.addTextChangedListener(object: TextWatcher{
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (p0 != null) {
-                    if (p0.isNotEmpty() && emailEditText.text.toString().isNotEmpty()) {
-                        if(!registerProfileBinding.registerButtonRegisterProfile.isEnabled) {
-                            registerProfileBinding.registerButtonRegisterProfile.isEnabled = true
-                        }
-                    } else if(registerProfileBinding.registerButtonRegisterProfile.isEnabled) {
+                } else {
+                    if(registerProfileBinding.registerButtonRegisterProfile.isEnabled) {
                         registerProfileBinding.registerButtonRegisterProfile.isEnabled = false
                     }
                 }
             }
+        }
+        passwordEditText.doOnTextChanged { text, _, _, _ ->
+            if(text != null) {
+                if (registerProfileBinding.passwordLayoutRegisterProfile.error != null) {
+                    registerProfileBinding.passwordLayoutRegisterProfile.error = null
+                }
 
-            override fun afterTextChanged(p0: Editable?) {
+                if(text.isNotEmpty()) {
+                    registerProfileBinding.repeatPasswordLayoutRegisterProfile.isEnabled = true
+                } else {
+                    registerProfileBinding.repeatPasswordEdittextRegisterProfile
+                        .setText("")
+
+                    registerProfileBinding.repeatPasswordLayoutRegisterProfile
+                        .isEnabled = false
+                }
             }
+        }
+        repeatPasswordEditText.doOnTextChanged { text, _, _, _ ->
+            if (text != null) {
+                val repeatPasswordLayout = registerProfileBinding.repeatPasswordLayoutRegisterProfile
 
-        })
+                if (text.toString() != passwordEditText.text.toString()) {
+                    registerProfileBinding.repeatPasswordLayoutRegisterProfile.error = "Passwords don't match"
+                } else {
+                    repeatPasswordLayout.error = null
+                }
+
+                if (text.isNotEmpty() && emailEditText.text.toString().isNotEmpty()) {
+                    if(!registerProfileBinding.registerButtonRegisterProfile.isEnabled) {
+                        registerProfileBinding.registerButtonRegisterProfile.isEnabled = true
+                    }
+                } else if(registerProfileBinding.registerButtonRegisterProfile.isEnabled) {
+                    registerProfileBinding.registerButtonRegisterProfile.isEnabled = false
+                }
+            }
+        }
+
+        registerProfileBinding.registerButtonRegisterProfile.isEnabled = false
+        registerProfileBinding.registerButtonRegisterProfile.setOnClickListener{
+
+            viewModel.createUserWithEmailAndPassword(emailEditText.text.toString(),
+            passwordEditText.text.toString(),
+            registerProfileBinding.emailLayoutRegisterProfile,
+                registerProfileBinding.passwordLayoutRegisterProfile,
+            registerProfileBinding.repeatPasswordLayoutRegisterProfile)
+        }
 
         binding.backButtonProfile.visibility = View.VISIBLE
         val params = (binding.wasteidProfileTitleTv.layoutParams as ConstraintLayout.LayoutParams)
@@ -266,8 +228,6 @@ class ProfileFragment : Fragment() {
         binding.wasteidProfileTitleTv.layoutParams = params
 
         binding.placeForProfile.addView(registerProfileBinding.root)
-
-
     }
 
     private fun addProfile() {

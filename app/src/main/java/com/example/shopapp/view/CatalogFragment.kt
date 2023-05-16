@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -121,31 +122,18 @@ class CatalogFragment : Fragment() {
             }
 
         //добавляем слушатель ввода текста в searchView, чтобы изменить элемент listView
-        productCategoriesScreen.searchViewCategories.editText.addTextChangedListener(object :
-            TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-                if (p0 != null) {
+        productCategoriesScreen.searchViewCategories.editText
+            .doOnTextChanged { text, _, _, _ ->
+                if (text != null) {
                     strList.clear()
-                    strList.add(p0.toString())
+                    strList.add(text.toString())
 
                     arrayAdapter.notifyDataSetChanged()
                 }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-
-            }
-
-        })
+        }
 
         val adapterList: MutableList<CatalogViewModel.Category> = mutableListOf()
         val myAdapter = CategoriesRecyclerItem(adapterList, requireContext())
-
         productCategoriesScreen.recyclerViewCategories.layoutManager = LinearLayoutManager(requireContext())
         productCategoriesScreen.recyclerViewCategories.adapter = myAdapter
 
