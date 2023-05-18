@@ -54,7 +54,7 @@ class CatalogFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.getFragmnetNum().collect {
+                viewModel.getFragmentNum().collect {
                     when(it) {
                         0 -> addProductCategoriesScreen()
                         1 -> addProductsScreen()
@@ -133,13 +133,14 @@ class CatalogFragment : Fragment() {
         }
 
         val adapterList: MutableList<CatalogViewModel.Category> = mutableListOf()
-        val myAdapter = CategoriesRecyclerItem(adapterList, requireContext())
+        val myAdapter = CategoriesRecyclerItem(adapterList, requireContext(), viewModel.storageRef,
+        resources.displayMetrics.density)
         productCategoriesScreen.recyclerViewCategories.layoutManager = LinearLayoutManager(requireContext())
         productCategoriesScreen.recyclerViewCategories.adapter = myAdapter
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.getCategoryList().collect {
+                viewModel.categoryStateFlow.collect {
                     adapterList.clear()
                     adapterList.addAll(it)
 

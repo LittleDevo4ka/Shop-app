@@ -1,21 +1,37 @@
 package com.example.shopapp.viewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.snapshots
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class CatalogViewModel: ViewModel() {
 
     private val categoryList = mutableListOf<Category>()
-    private val productList = mutableListOf<Product>()
+    private val categoryMutableFlow: MutableStateFlow<List<Category>> = MutableStateFlow(categoryList.toList())
+    val categoryStateFlow: StateFlow<List<Category>> = categoryMutableFlow
 
-    private val categoryFlow: MutableStateFlow<MutableList<Category>> = MutableStateFlow(categoryList)
-    private val productFlow: MutableStateFlow<List<Product>> = MutableStateFlow(productList)
+    private val productList = mutableListOf<Product>()
+    private val productMutableFlow: MutableStateFlow<List<Product>> = MutableStateFlow(productList.toList())
+    val productStateFlow: StateFlow<List<Product>> = productMutableFlow
 
     private val fragmentNum: MutableStateFlow<Int> = MutableStateFlow(0)
 
+    val db: FirebaseFirestore
+    val storage = Firebase.storage
+    val storageRef = storage.reference
+
     data class Category(
-        val name: String,
-        val image: String
+        val id: Int = -1,
+        val name: String = "",
+        val image_link: String = ""
     )
     data class Product(
         val name: String,
@@ -25,38 +41,31 @@ class CatalogViewModel: ViewModel() {
     )
 
     init {
-        val shoesCategory = Category("shoes",
-            "https://assets.ajio.com/medias/sys_master/root/20211224/1tuJ/61c4c229aeb26901101a2a6a/-473Wx593H-469034008-black-MODEL.jpg")
-        val smartphonesCategory = Category("smartphones",
-            "https://3dnews.ru/assets/external/illustrations/2021/09/23/1049741/54545.jpg")
-        val drinksCategory = Category("drinks",
-            "https://ukkebabsfrome.co.uk/wp-content/uploads/2022/03/HERO_Worlds_Best_Soda_Bundaberg_shutterstock_679079920.jpeg")
+        db = Firebase.firestore
 
-        categoryFlow.value.add(shoesCategory)
-        categoryFlow.value.add(smartphonesCategory)
-        categoryFlow.value.add(drinksCategory)
-
-        val nike = Product("nike blazer", 12000.0, "",
-            "https://nike-rus.com/image/cache/catalog/2021/airfors/58619041-1340x1000.jpg")
-        val pixel3 = Product("pixel 3", 20000.0, "",
-            "https://www.droid-life.com/wp-content/uploads/2018/10/Google-Pixel-3-Review-15-1200x1200-cropped.jpg")
-        val cocaWithoutSugar = Product("coca-cola without sugar", 50.0, "",
-            "https://meat-grinder.ru/uploads/images/catalog/coca-cola-without-sugar-05.jpg")
-
-        productList.add(nike)
-        productList.add(pixel3)
-        productList.add(cocaWithoutSugar)
+        val docRef = db.collection("categories")
+        docRef.get()
+            .addOnSuccessListener {
+                if (it != null) {
+                    val list = it.toObjects(Category::class.java)
+                    for (i in 0 until list.size) {
+                        if (list[i] != null) {
+                            categoryList.add(list[i])
+                        }
+                    }
+                    categoryMutableFlow.value = categoryList
+                }
+            }
+            .addOnFailureListener {
+                Log.i("Error", it.message.toString())
+            }
     }
 
-    fun getFragmnetNum(): MutableStateFlow<Int> {
+    fun getFragmentNum(): MutableStateFlow<Int> {
         return fragmentNum
     }
 
     fun setFragmentNum(value: Int) {
         fragmentNum.value = value
-    }
-
-    fun getCategoryList(): MutableStateFlow<MutableList<Category>> {
-        return categoryFlow
     }
 }
