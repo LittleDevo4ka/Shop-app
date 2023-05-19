@@ -2,6 +2,8 @@ package com.example.shopapp.viewModel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.example.shopapp.model.dataClasses.Category
+import com.example.shopapp.model.dataClasses.Product
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -18,27 +20,15 @@ class CatalogViewModel: ViewModel() {
     private val categoryMutableFlow: MutableStateFlow<List<Category>> = MutableStateFlow(categoryList.toList())
     val categoryStateFlow: StateFlow<List<Category>> = categoryMutableFlow
 
-    private val productList = mutableListOf<Product>()
-    private val productMutableFlow: MutableStateFlow<List<Product>> = MutableStateFlow(productList.toList())
-    val productStateFlow: StateFlow<List<Product>> = productMutableFlow
+    private val productsList = mutableListOf<Product>()
+    private val productsMutableFlow: MutableStateFlow<List<Product>> = MutableStateFlow(productsList.toList())
+    val productsStateFlow: StateFlow<List<Product>> = productsMutableFlow
 
     private val fragmentNum: MutableStateFlow<Int> = MutableStateFlow(0)
 
     val db: FirebaseFirestore
     val storage = Firebase.storage
     val storageRef = storage.reference
-
-    data class Category(
-        val id: Int = -1,
-        val name: String = "",
-        val image_link: String = ""
-    )
-    data class Product(
-        val name: String,
-        val price: Double,
-        val description: String,
-        val image: String
-    )
 
     init {
         db = Firebase.firestore
@@ -58,6 +48,22 @@ class CatalogViewModel: ViewModel() {
             }
             .addOnFailureListener {
                 Log.i("Error", it.message.toString())
+            }
+    }
+
+    fun getProducts(categoryId: Int) {
+        val docRef = db.collection("products").whereEqualTo("category_id", 1)
+        docRef.get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val tempProductsList = task.result.toObjects(Product::class.java)
+                    for (i in 0 until tempProductsList.size) {
+                        if (tempProductsList[i] != null) {
+                            productsList.add(tempProductsList[i])
+                        }
+                    }
+                    productsMutableFlow.value = productsList
+                }
             }
     }
 

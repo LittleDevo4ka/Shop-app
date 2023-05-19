@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.GridLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -20,9 +21,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.shopapp.databinding.FragmentCatalogBinding
 import com.example.shopapp.databinding.ProductCategoriesScreenBinding
+import com.example.shopapp.databinding.ProductsScreenBinding
+import com.example.shopapp.model.dataClasses.Category
+import com.example.shopapp.model.dataClasses.Product
 import com.example.shopapp.viewModel.AccountViewModel
 import com.example.shopapp.viewModel.CatalogViewModel
 import com.google.android.material.search.SearchView.TransitionState
@@ -30,7 +35,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
 
-class CatalogFragment : Fragment() {
+class CatalogFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListener {
 
     private lateinit var binding: FragmentCatalogBinding
     private var ds: Float = 0f
@@ -58,7 +63,6 @@ class CatalogFragment : Fragment() {
                     when(it) {
                         0 -> addProductCategoriesScreen()
                         1 -> addProductsScreen()
-                        2 -> addProductScreen()
                         else -> Log.i(tag, "Oops, an unexpected fragmentNum: $it")
                     }
                 }
@@ -74,29 +78,29 @@ class CatalogFragment : Fragment() {
 
         val productCategoriesCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                productCategoriesScreen.searchViewCategories.hide()
+                binding.searchViewCatalog.hide()
             }
         }
         requireActivity().onBackPressedDispatcher.addCallback(productCategoriesCallback)
 
 
         //Убираем заголовок Catalog, при открытии searchView и возвращем его обратно при его закрытии
-        productCategoriesScreen.searchViewCategories.addTransitionListener { _, _, newState ->
+        binding.searchViewCatalog.addTransitionListener { _, _, newState ->
             if (newState === TransitionState.SHOWING) {
                 binding.wasteidCatalogTitleTv.visibility = View.GONE
-                val params = (productCategoriesScreen.searchCoordinatorLayoutCategories.layoutParams
+                val params = (binding.searchCoordinatorLayoutCatalog.layoutParams
                         as ConstraintLayout.LayoutParams)
                 params.topMargin = 0
-                productCategoriesScreen.searchCoordinatorLayoutCategories.layoutParams = params
+                binding.searchCoordinatorLayoutCatalog.layoutParams = params
 
                 productCategoriesCallback.isEnabled = true
             }
             if (newState === TransitionState.HIDING) {
                 binding.wasteidCatalogTitleTv.visibility = View.VISIBLE
-                val params = (productCategoriesScreen.searchCoordinatorLayoutCategories.layoutParams
+                val params = (binding.searchCoordinatorLayoutCatalog.layoutParams
                         as ConstraintLayout.LayoutParams)
                 params.topMargin = ceil(24 * ds).toInt()
-                productCategoriesScreen.searchCoordinatorLayoutCategories.layoutParams = params
+                binding.searchCoordinatorLayoutCatalog.layoutParams = params
 
                 productCategoriesCallback.isEnabled = false
             }
@@ -106,23 +110,23 @@ class CatalogFragment : Fragment() {
         val arrayAdapter: ArrayAdapter<String> =
             ArrayAdapter(requireContext(), R.layout.simple_list_item_1, strList)
 
-        productCategoriesScreen.placeForSearchSuggestionCategories.adapter = arrayAdapter
+        binding.placeForSearchSuggestionCatalog.adapter = arrayAdapter
 
         //слушатель нажатий на элементы listView
-        productCategoriesScreen.placeForSearchSuggestionCategories.onItemClickListener =
+        binding.placeForSearchSuggestionCatalog.onItemClickListener =
             AdapterView.OnItemClickListener { p0, p1, p2, p3 ->
-                productCategoriesScreen.searchViewCategories.clearFocusAndHideKeyboard()
-                productCategoriesScreen.searchViewCategories.hide()
+                binding.searchViewCatalog.clearFocusAndHideKeyboard()
+                binding.searchViewCatalog.hide()
 
 
-                productCategoriesScreen.searchBarCategories.text = strList[0]
+                binding.searchBarCatalog.text = strList[0]
 
                 strList.clear()
                 arrayAdapter.notifyDataSetChanged()
             }
 
         //добавляем слушатель ввода текста в searchView, чтобы изменить элемент listView
-        productCategoriesScreen.searchViewCategories.editText
+        binding.searchViewCatalog.editText
             .doOnTextChanged { text, _, _, _ ->
                 if (text != null) {
                     strList.clear()
@@ -132,9 +136,9 @@ class CatalogFragment : Fragment() {
                 }
         }
 
-        val adapterList: MutableList<CatalogViewModel.Category> = mutableListOf()
+        val adapterList: MutableList<Category> = mutableListOf()
         val myAdapter = CategoriesRecyclerItem(adapterList, requireContext(), viewModel.storageRef,
-        resources.displayMetrics.density)
+        resources.displayMetrics.density, this)
         productCategoriesScreen.recyclerViewCategories.layoutManager = LinearLayoutManager(requireContext())
         productCategoriesScreen.recyclerViewCategories.adapter = myAdapter
 
@@ -155,10 +159,39 @@ class CatalogFragment : Fragment() {
     }
 
     private fun addProductsScreen() {
+        val productCategoriesScreen = ProductsScreenBinding.inflate(
+            layoutInflater,
+            binding.placeForCatalog, false
+        )
 
+        val adapterList: MutableList<Product> = mutableListOf()
+        val myAdapter = ProductsRecyclerItem(adapterList, requireContext(), viewModel.storageRef,
+            resources.displayMetrics.density)
+        productCategoriesScreen.recyclerViewProducts.layoutManager =
+            GridLayoutManager(requireContext(), 2)
+
+        productCategoriesScreen.recyclerViewProducts.adapter = myAdapter
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.productsStateFlow.collect{
+                    adapterList.clear()
+                    adapterList.addAll(it)
+
+                    myAdapter.notifyDataSetChanged()
+                }
+            }
+        }
+        viewModel.getProducts(1)
+
+        binding.placeForCatalog.addView(productCategoriesScreen.root)
     }
 
-    private fun addProductScreen() {
-
+    override fun onItemClick(position: Int, isCategory: Boolean) {
+        if (isCategory) {
+            binding.placeForCatalog.removeAllViews()
+            binding.wasteidCatalogTitleTv.visibility = View.GONE
+            addProductsScreen()
+        }
     }
 }
