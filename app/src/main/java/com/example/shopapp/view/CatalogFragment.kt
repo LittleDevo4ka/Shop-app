@@ -15,6 +15,8 @@ import android.widget.GridLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -41,6 +43,7 @@ class CatalogFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListener {
     private var ds: Float = 0f
 
     private lateinit var viewModel: CatalogViewModel
+    private var categoryId = -1
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,6 +60,10 @@ class CatalogFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.swipeRefreshLayoutCatalog.setOnRefreshListener {
+            updateCatalog()
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.getFragmentNum().collect {
@@ -71,6 +78,8 @@ class CatalogFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListener {
     }
 
     private fun addProductCategoriesScreen() {
+        binding.swipeRefreshLayoutCatalog.isRefreshing = true
+
         val productCategoriesScreen = ProductCategoriesScreenBinding.inflate(
             layoutInflater,
             binding.placeForCatalog, false
@@ -145,8 +154,15 @@ class CatalogFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListener {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.categoryStateFlow.collect {
+                    if (binding.swipeRefreshLayoutCatalog.isRefreshing && it != null) {
+                        binding.swipeRefreshLayoutCatalog.isRefreshing = false
+                    }
+
                     adapterList.clear()
-                    adapterList.addAll(it)
+
+                    if (it != null) {
+                        adapterList.addAll(it)
+                    }
 
                     myAdapter.notifyDataSetChanged()
                 }
@@ -159,6 +175,8 @@ class CatalogFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListener {
     }
 
     private fun addProductsScreen() {
+        binding.swipeRefreshLayoutCatalog.isRefreshing = true
+
         val productCategoriesScreen = ProductsScreenBinding.inflate(
             layoutInflater,
             binding.placeForCatalog, false
@@ -172,26 +190,55 @@ class CatalogFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListener {
 
         productCategoriesScreen.recyclerViewProducts.adapter = myAdapter
 
+
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.productsStateFlow.collect{
+                viewModel.productsStateFlow.collect{productsList ->
+                    if (binding.swipeRefreshLayoutCatalog.isRefreshing && productsList != null) {
+                        binding.swipeRefreshLayoutCatalog.isRefreshing = false
+                    }
+
                     adapterList.clear()
-                    adapterList.addAll(it)
+
+                    if (productsList != null) {
+                        if (productsList.isEmpty()) {
+
+                            if (binding.noResultsTv.isGone) {
+                                binding.noResultsTv.visibility = View.VISIBLE
+                            }
+                            binding.noResultsTv.text = "No products found"
+
+                        } else if (binding.noResultsTv.isVisible) {
+                            binding.noResultsTv.visibility = View.GONE
+                        }
+                        adapterList.addAll(productsList)
+                    }
 
                     myAdapter.notifyDataSetChanged()
                 }
             }
         }
-        viewModel.getProducts(1)
 
         binding.placeForCatalog.addView(productCategoriesScreen.root)
     }
 
-    override fun onItemClick(position: Int, isCategory: Boolean) {
+    override fun onItemClick(tempCategoryId: Int, isCategory: Boolean) {
         if (isCategory) {
+            viewModel.getProducts(tempCategoryId)
+
             binding.placeForCatalog.removeAllViews()
             binding.wasteidCatalogTitleTv.visibility = View.GONE
             addProductsScreen()
+
+            categoryId = tempCategoryId
+        }
+    }
+
+    private fun updateCatalog() {
+        if (categoryId != -1) {
+            viewModel.getProducts(categoryId)
+        } else {
+            viewModel.updateCatalog()
         }
     }
 }

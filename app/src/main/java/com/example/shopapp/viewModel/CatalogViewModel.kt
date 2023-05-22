@@ -1,6 +1,9 @@
 package com.example.shopapp.viewModel
 
+import android.app.Application
 import android.util.Log
+import android.widget.Toast
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import com.example.shopapp.model.dataClasses.Category
 import com.example.shopapp.model.dataClasses.Product
@@ -14,24 +17,45 @@ import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class CatalogViewModel: ViewModel() {
+class CatalogViewModel(application: Application) : AndroidViewModel(application) {
 
     private val categoryList = mutableListOf<Category>()
-    private val categoryMutableFlow: MutableStateFlow<List<Category>> = MutableStateFlow(categoryList.toList())
-    val categoryStateFlow: StateFlow<List<Category>> = categoryMutableFlow
+    private val categoryMutableFlow: MutableStateFlow<List<Category>?> = MutableStateFlow(null)
+    val categoryStateFlow: StateFlow<List<Category>?> = categoryMutableFlow
 
-    private val productsList = mutableListOf<Product>()
-    private val productsMutableFlow: MutableStateFlow<List<Product>> = MutableStateFlow(productsList.toList())
-    val productsStateFlow: StateFlow<List<Product>> = productsMutableFlow
+    private var productsList = mutableListOf<Product>()
+    private val productsMutableFlow: MutableStateFlow<List<Product>?> = MutableStateFlow(null)
+    val productsStateFlow: StateFlow<List<Product>?> = productsMutableFlow
 
     private val fragmentNum: MutableStateFlow<Int> = MutableStateFlow(0)
 
-    val db: FirebaseFirestore
+    val auth = Firebase.auth
+    val db: FirebaseFirestore = Firebase.firestore
     val storage = Firebase.storage
     val storageRef = storage.reference
 
     init {
-        db = Firebase.firestore
+        if (auth.currentUser == null) {
+            signInAnonymously()
+        } else {
+            getCategories()
+        }
+    }
+
+    private fun signInAnonymously() {
+        auth.signInAnonymously()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(getApplication(), "signInAnonymously:success.",
+                        Toast.LENGTH_SHORT).show()
+                    getCategories()
+                }
+            }
+    }
+
+    private fun getCategories() {
+        categoryList.clear()
+        categoryMutableFlow.value = null
 
         val docRef = db.collection("categories")
         docRef.get()
@@ -43,7 +67,7 @@ class CatalogViewModel: ViewModel() {
                             categoryList.add(list[i])
                         }
                     }
-                    categoryMutableFlow.value = categoryList
+                    categoryMutableFlow.value = categoryList.toList()
                 }
             }
             .addOnFailureListener {
@@ -51,8 +75,21 @@ class CatalogViewModel: ViewModel() {
             }
     }
 
+    fun updateCatalog() {
+        if (auth.currentUser != null) {
+            getCategories()
+        } else {
+            signInAnonymously()
+        }
+    }
+
     fun getProducts(categoryId: Int) {
-        val docRef = db.collection("products").whereEqualTo("category_id", 1)
+        productsList.clear()
+        productsMutableFlow.value = null
+
+        val docRef = db.collection("products")
+            .whereEqualTo("category_id", categoryId)
+
         docRef.get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -62,7 +99,7 @@ class CatalogViewModel: ViewModel() {
                             productsList.add(tempProductsList[i])
                         }
                     }
-                    productsMutableFlow.value = productsList
+                    productsMutableFlow.value = productsList.toList()
                 }
             }
     }

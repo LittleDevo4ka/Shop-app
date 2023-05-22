@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 
 
@@ -41,6 +42,14 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
         val currentUser = auth.currentUser
         if (currentUser != null) {
             fragmentNum.value = 3
+        } else {
+            auth.signInAnonymously()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(getApplication(), "signInAnonymously:success.",
+                            Toast.LENGTH_SHORT).show()
+                    }
+                }
         }
 
         saveInfo = application.getSharedPreferences("saveInfo", Context.MODE_PRIVATE)

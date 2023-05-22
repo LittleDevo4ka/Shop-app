@@ -32,7 +32,7 @@ class CategoriesRecyclerItem(private val categoryList: List<Category>, private v
 
     private var mainListener: OnItemClickListener = onClickListener
     interface OnItemClickListener{
-        fun onItemClick(position: Int, isCategory: Boolean)
+        fun onItemClick(categoryId: Int, isCategory: Boolean)
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -50,7 +50,8 @@ class CategoriesRecyclerItem(private val categoryList: List<Category>, private v
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.categoryCardButton.setOnClickListener{
-            mainListener.onItemClick(position, true)
+            mainListener.onItemClick(categoryList[position].id,
+                true)
         }
 
         holder.cardTitle.text = categoryList[position].name
