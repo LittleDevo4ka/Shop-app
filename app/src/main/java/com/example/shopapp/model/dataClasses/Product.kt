@@ -1,5 +1,4 @@
 package com.example.shopapp.model.dataClasses
-
 data class Product(
     val name: String = "",
     val cost: Double = 0.0,

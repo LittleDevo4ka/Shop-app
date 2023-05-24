@@ -5,6 +5,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewModelScope
+import com.example.shopapp.model.Repository
 import com.example.shopapp.model.dataClasses.Category
 import com.example.shopapp.model.dataClasses.Product
 import com.google.firebase.auth.FirebaseAuth
@@ -16,8 +19,12 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class CatalogViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val repository: Repository
 
     private val categoryList = mutableListOf<Category>()
     private val categoryMutableFlow: MutableStateFlow<List<Category>?> = MutableStateFlow(null)
@@ -29,28 +36,20 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
 
     private val fragmentNum: MutableStateFlow<Int> = MutableStateFlow(0)
 
-    val auth = Firebase.auth
     val db: FirebaseFirestore = Firebase.firestore
     val storage = Firebase.storage
     val storageRef = storage.reference
 
     init {
-        if (auth.currentUser == null) {
-            signInAnonymously()
-        } else {
-            getCategories()
-        }
-    }
+        repository = Repository.getRepository()
 
-    private fun signInAnonymously() {
-        auth.signInAnonymously()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Toast.makeText(getApplication(), "signInAnonymously:success.",
-                        Toast.LENGTH_SHORT).show()
+        viewModelScope.launch {
+            repository.currentUserStateFlow.collect{ currentUser ->
+                if (currentUser != null) {
                     getCategories()
                 }
             }
+        }
     }
 
     private fun getCategories() {
@@ -76,10 +75,8 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateCatalog() {
-        if (auth.currentUser != null) {
+        if (repository.getCurrentUser() != null) {
             getCategories()
-        } else {
-            signInAnonymously()
         }
     }
 
