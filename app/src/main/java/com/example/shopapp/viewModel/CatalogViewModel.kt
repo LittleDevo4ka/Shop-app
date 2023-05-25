@@ -43,6 +43,8 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
 
     private val mutableProduct: MutableStateFlow<Product?> = MutableStateFlow(null)
     val stateProduct: StateFlow<Product?> = mutableProduct
+    private val mutableCategory: MutableStateFlow<Category?> = MutableStateFlow(null)
+    val stateCategory: StateFlow<Category?> = mutableCategory
 
     private var categoryId: Int = -1
     private var productId: String = ""
@@ -127,8 +129,9 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
         getProduct()
     }
 
-    private fun getProduct() {
+    fun getProduct() {
         if (productId.isNotEmpty()) {
+            mutableProduct.value = null
             val docRef = db.collection("products")
                 .document(productId)
 
@@ -148,5 +151,24 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
                 }
         }
 
+    }
+
+    fun getCategory(id: Int) {
+        mutableCategory.value = null
+        val docRef = db.collection("categories")
+            .whereEqualTo("id", id)
+
+        docRef.get()
+            .addOnSuccessListener {
+                if (it != null) {
+                    val list = it.toObjects(Category::class.java)
+                    for (i in 0 until list.size) {
+                        if (list[i] != null) {
+                            mutableCategory.value = list[i]
+                            break
+                        }
+                    }
+                }
+            }
     }
 }

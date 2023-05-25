@@ -41,6 +41,11 @@ class ProductFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.swipeRefreshLayoutProduct.setOnRefreshListener {
+            updateProduct()
+        }
+        binding.swipeRefreshLayoutProduct.isRefreshing = true
+
         binding.backButtonProduct.visibility = View.VISIBLE
 
         binding.backButtonProduct.setOnClickListener {
@@ -71,16 +76,31 @@ class ProductFragment : Fragment() {
                                             links.add(tempLinks[i])
                                         }
                                     }
-                                    println(links.size)
                                     adapterList.addAll(links)
                                     myAdapter.notifyDataSetChanged()
                                 }
                             }
-                            .addOnFailureListener{
-                            }
+
+                        viewModel.getCategory(product.category_id)
                     }
                 }
             }
         }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.stateCategory.collect { category ->
+                    if (category != null) {
+                        binding.productCategoryTv.text = "Category: ${category.name}"
+
+                        binding.swipeRefreshLayoutProduct.isRefreshing = false
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateProduct() {
+        viewModel.getProduct()
     }
 }
