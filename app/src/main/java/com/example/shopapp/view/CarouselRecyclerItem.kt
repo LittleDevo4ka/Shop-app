@@ -9,10 +9,20 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.shopapp.R
+import com.google.firebase.storage.StorageReference
+import kotlin.math.ceil
 
-class CarouselRecyclerItem(private val mainList: List<Int>, private val context: Context) :
+class CarouselRecyclerItem(private val mainList: List<StorageReference>,
+                           private val context: Context, density: Float) :
     RecyclerView.Adapter<CarouselRecyclerItem.MyViewHolder>() {
+
+    private val carouselTag = "CarouselRecyclerItem"
+    private val imageHeight = ceil(196 * density).toInt()
+    private val imageWidth = ceil(150 * density).toInt()
+    private val glideOptions = RequestOptions()
+        .override(imageWidth, imageHeight)
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardImage: ImageView = itemView.findViewById(R.id.carousel_image_view)
@@ -26,9 +36,15 @@ class CarouselRecyclerItem(private val mainList: List<Int>, private val context:
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        Glide.with(context)
-            .load(R.drawable.placeholder)
-            .into(holder.cardImage)
+        mainList[position].downloadUrl.addOnCompleteListener {
+            if (it.isSuccessful) {
+                if (it.result != null) {
+                    Glide.with(context).load(it.result).apply(glideOptions)
+                        .placeholder(R.drawable.placeholder)
+                        .into(holder.cardImage)
+                }
+            }
+        }
     }
 
 

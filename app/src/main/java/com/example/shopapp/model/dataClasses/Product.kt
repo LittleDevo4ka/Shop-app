@@ -1,5 +1,6 @@
 package com.example.shopapp.model.dataClasses
 data class Product(
+    var id: String = "",
     val name: String = "",
     val cost: Double = 0.0,
     val description: String = "",

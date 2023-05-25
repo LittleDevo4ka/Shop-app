@@ -18,8 +18,7 @@
             android:id="@+id/image_product_card"
 
             android:layout_width="match_parent"
-            android:layout_height="132dp"
-            android:scaleType="centerCrop" />
+            android:layout_height="132dp" />
 
         <LinearLayout
             android:layout_width="match_parent"

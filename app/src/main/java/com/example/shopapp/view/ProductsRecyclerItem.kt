@@ -45,7 +45,18 @@ class ProductsRecyclerItem(private val productsList: List<Product>, private val 
         holder.cardTitle.text = productsList[position].name
         holder.cardCost.text = productsList[position].cost.toString()
         holder.productCard.setOnClickListener{
-            mainListener.onItemClick(productsList[position].category_id, false)
+            mainListener.onItemClick(productsList[position].id)
+        }
+
+        val tempImg = ref.child("products/${productsList[position].id}/1.jpg")
+        tempImg.downloadUrl.addOnCompleteListener {
+            if (it.isSuccessful) {
+                if (it.result != null) {
+                    Glide.with(context).load(it.result).apply(glideOptions)
+                        .placeholder(R.drawable.placeholder)
+                        .into(holder.cardImage)
+                }
+            }
         }
 
     }

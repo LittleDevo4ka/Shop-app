@@ -27,6 +27,8 @@ import kotlinx.coroutines.launch
 
 class CatalogViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val tag: String = "CatalogViewModel"
+
     private val repository: Repository
 
     private val categoryList = mutableListOf<Category>()
@@ -39,7 +41,11 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
 
     private val fragmentNum: MutableStateFlow<Int> = MutableStateFlow(0)
 
+    private val mutableProduct: MutableStateFlow<Product?> = MutableStateFlow(null)
+    val stateProduct: StateFlow<Product?> = mutableProduct
+
     private var categoryId: Int = -1
+    private var productId: String = ""
 
     val db: FirebaseFirestore = Firebase.firestore
     val storage = Firebase.storage
@@ -90,6 +96,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
                     val tempProductsList = task.result.toObjects(Product::class.java)
                     for (i in 0 until tempProductsList.size) {
                         if (tempProductsList[i] != null) {
+                            tempProductsList[i].id = task.result.documents[i].id
                             productsList.add(tempProductsList[i])
                         }
                     }
@@ -113,5 +120,33 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
 
     fun getCategoryId(): Int {
         return categoryId
+    }
+
+    fun setProductId(id: String) {
+        productId = id
+        getProduct()
+    }
+
+    private fun getProduct() {
+        if (productId.isNotEmpty()) {
+            val docRef = db.collection("products")
+                .document(productId)
+
+            docRef.get()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val tempProduct = task.result.toObject(Product::class.java)
+                        if (tempProduct != null) {
+                            Log.w(tag, "getProduct: the product has been received")
+                            tempProduct.id = task.result.id
+                            mutableProduct.value = tempProduct
+                        }
+                    }
+                }
+                .addOnFailureListener {
+                    Log.w(tag, "getProduct: error, unable to get the product")
+                }
+        }
+
     }
 }

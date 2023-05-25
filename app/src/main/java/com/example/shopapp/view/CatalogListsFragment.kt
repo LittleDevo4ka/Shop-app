@@ -228,15 +228,16 @@ class CatalogListsFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListe
         binding.placeForCatalog.addView(productCategoriesScreen.root)
     }
 
-    override fun onItemClick(id: Int, isCategory: Boolean) {
-        if (isCategory) {
-            viewModel.setCategoryId(id)
+    override fun onItemClick(id: Int) {
+        viewModel.setCategoryId(id)
 
-            binding.placeForCatalog.removeAllViews()
-            addProductsScreen()
-        } else {
-            findNavController().navigate(R.id.action_catalogListsFragment_to_productFragment)
-        }
+        binding.placeForCatalog.removeAllViews()
+        addProductsScreen()
+    }
+
+    override fun onItemClick(id: String) {
+        viewModel.setProductId(id)
+        findNavController().navigate(R.id.action_catalogListsFragment_to_productFragment)
     }
 
     private fun updateCatalog() {
