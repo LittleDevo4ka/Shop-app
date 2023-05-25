@@ -32,7 +32,7 @@ class CategoriesRecyclerItem(private val categoryList: List<Category>, private v
 
     private var mainListener: OnItemClickListener = onClickListener
     interface OnItemClickListener{
-        fun onItemClick(categoryId: Int, isCategory: Boolean)
+        fun onItemClick(id: Int, isCategory: Boolean)
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

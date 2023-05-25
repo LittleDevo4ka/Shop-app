@@ -14,6 +14,7 @@
         android:name="com.example.shopapp.view.CatalogFragment"
         android:label="fragment_catalog"
         tools:layout="@layout/fragment_catalog" />
+
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.example.shopapp.view.SettingsFragment"

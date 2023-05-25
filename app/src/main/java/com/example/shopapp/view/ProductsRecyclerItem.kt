@@ -12,22 +12,26 @@ import com.bumptech.glide.request.RequestOptions
 import com.example.shopapp.R
 import com.example.shopapp.model.dataClasses.Product
 import com.example.shopapp.viewModel.CatalogViewModel
+import com.google.android.material.card.MaterialCardView
 import com.google.firebase.storage.StorageReference
 import kotlin.math.ceil
 
 class ProductsRecyclerItem(private val productsList: List<Product>, private val context: Context,
-                           private val ref: StorageReference, density: Float) :
+                           private val ref: StorageReference, density: Float,
+                           onClickListener: CategoriesRecyclerItem.OnItemClickListener) :
     RecyclerView.Adapter<ProductsRecyclerItem.MyViewHolder>() {
 
     private val productsTag = "ProductsRecyclerItem"
     private val imageSize = ceil(56 * density).toInt()
     private val glideOptions = RequestOptions()
         .override(imageSize, imageSize)
+    private val mainListener = onClickListener
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardTitle: TextView = itemView.findViewById(R.id.title_product_card)
         val cardCost: TextView = itemView.findViewById(R.id.secondary_title_product_card)
         val cardImage: ImageView = itemView.findViewById(R.id.image_product_card)
+        val productCard: MaterialCardView = itemView.findViewById(R.id.product_card)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -40,6 +44,9 @@ class ProductsRecyclerItem(private val productsList: List<Product>, private val 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.cardTitle.text = productsList[position].name
         holder.cardCost.text = productsList[position].cost.toString()
+        holder.productCard.setOnClickListener{
+            mainListener.onItemClick(productsList[position].category_id, false)
+        }
 
     }
 

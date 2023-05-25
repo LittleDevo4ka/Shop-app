@@ -1,7 +1,9 @@
 package com.example.shopapp.viewModel
 
 import android.app.Application
+import android.icu.text.CaseMap.Title
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -10,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.shopapp.model.Repository
 import com.example.shopapp.model.dataClasses.Category
 import com.example.shopapp.model.dataClasses.Product
+import com.example.shopapp.model.dataClasses.TitleVisibility
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -36,20 +39,14 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
 
     private val fragmentNum: MutableStateFlow<Int> = MutableStateFlow(0)
 
+    private var categoryId: Int = -1
+
     val db: FirebaseFirestore = Firebase.firestore
     val storage = Firebase.storage
     val storageRef = storage.reference
 
     init {
         repository = Repository.getRepository()
-
-        viewModelScope.launch {
-            repository.currentUserStateFlow.collect{ currentUser ->
-                if (currentUser != null) {
-                    getCategories()
-                }
-            }
-        }
     }
 
     private fun getCategories() {
@@ -80,7 +77,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun getProducts(categoryId: Int) {
+    fun getProducts() {
         productsList.clear()
         productsMutableFlow.value = null
 
@@ -105,7 +102,16 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
         return fragmentNum
     }
 
-    fun setFragmentNum(value: Int) {
-        fragmentNum.value = value
+    fun setFragmentNum(num: Int) {
+        fragmentNum.value = num
+    }
+
+    fun setCategoryId(id: Int) {
+        categoryId = id
+        fragmentNum.value = 1
+    }
+
+    fun getCategoryId(): Int {
+        return categoryId
     }
 }
