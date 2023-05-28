@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ImageView
+        android:id="@+id/image_small_shopping_card"
+
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:src="@drawable/placeholder"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="16dp"/>
+
+    <TextView
+        android:id="@+id/name_small_shopping_card"
+
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="List item"
+        android:textSize="16dp"
+        android:textColor="@color/black"
+        android:gravity="left"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/image_small_shopping_card"
+        android:layout_marginStart="16dp"
+        app:layout_constraintEnd_toEndOf="@id/checkbox_small_shopping_card"
+        android:layout_marginEnd="16dp"/>
+
+    <CheckBox
+        android:id="@+id/checkbox_small_shopping_card"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="24dp"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

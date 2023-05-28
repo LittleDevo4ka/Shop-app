@@ -22,5 +22,17 @@
         <action
             android:id="@+id/action_productFragment_to_catalogListsFragment"
             app:destination="@id/catalogListsFragment" />
+        <action
+            android:id="@+id/action_productFragment_to_quickAddFragment"
+            app:destination="@id/quickAddFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/quickAddFragment"
+        android:name="com.example.shopapp.view.QuickAddFragment"
+        android:label="fragment_quick_add"
+        tools:layout="@layout/fragment_quick_add" >
+        <action
+            android:id="@+id/action_quickAddFragment_to_productFragment"
+            app:destination="@id/productFragment" />
     </fragment>
 </navigation>

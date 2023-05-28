@@ -98,6 +98,10 @@ class ProductFragment : Fragment() {
                 }
             }
         }
+
+        binding.plusFabProduct.setOnClickListener {
+            findNavController().navigate(R.id.action_productFragment_to_quickAddFragment)
+        }
     }
 
     private fun updateProduct() {

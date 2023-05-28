@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.shopapp.R
 import com.example.shopapp.model.dataClasses.Category
+import com.example.shopapp.model.dataClasses.OnItemClickListener
 import com.example.shopapp.viewModel.CatalogViewModel
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
@@ -31,10 +32,6 @@ class CategoriesRecyclerItem(private val categoryList: List<Category>, private v
         .override(imageSize, imageSize)
 
     private var mainListener: OnItemClickListener = onClickListener
-    interface OnItemClickListener{
-        fun onItemClick(id: Int)
-        fun onItemClick(id: String)
-    }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardTitle: TextView = itemView.findViewById(R.id.category_card_title)

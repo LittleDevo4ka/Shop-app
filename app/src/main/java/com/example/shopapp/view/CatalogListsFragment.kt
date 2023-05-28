@@ -25,13 +25,14 @@ import com.example.shopapp.databinding.FragmentCatalogListsBinding
 import com.example.shopapp.databinding.ProductCategoriesScreenBinding
 import com.example.shopapp.databinding.ProductsScreenBinding
 import com.example.shopapp.model.dataClasses.Category
+import com.example.shopapp.model.dataClasses.OnItemClickListener
 import com.example.shopapp.model.dataClasses.Product
 import com.example.shopapp.viewModel.CatalogViewModel
 import com.google.android.material.search.SearchView
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
-class CatalogListsFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListener {
+class CatalogListsFragment : Fragment(), OnItemClickListener {
 
     private lateinit var binding: FragmentCatalogListsBinding
     private lateinit var viewModel: CatalogViewModel
@@ -178,12 +179,6 @@ class CatalogListsFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListe
     private fun addProductsScreen() {
         binding.swipeRefreshLayoutCatalog.isRefreshing = true
 
-        binding.backButtonCatalog.setOnClickListener {
-            binding.backButtonCatalog.visibility = View.GONE
-            viewModel.setFragmentNum(0)
-        }
-        binding.backButtonCatalog.visibility = View.VISIBLE
-
         val productCategoriesScreen = ProductsScreenBinding.inflate(
             layoutInflater,
             binding.placeForCatalog, false
@@ -196,6 +191,14 @@ class CatalogListsFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListe
             GridLayoutManager(requireContext(), 2)
 
         productCategoriesScreen.recyclerViewProducts.adapter = myAdapter
+
+        binding.backButtonCatalog.setOnClickListener {
+            binding.backButtonCatalog.visibility = View.GONE
+            adapterList.clear()
+            myAdapter.notifyDataSetChanged()
+            viewModel.setFragmentNum(0)
+        }
+        binding.backButtonCatalog.visibility = View.VISIBLE
 
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -238,6 +241,10 @@ class CatalogListsFragment : Fragment(), CategoriesRecyclerItem.OnItemClickListe
     override fun onItemClick(id: String) {
         viewModel.setProductId(id)
         findNavController().navigate(R.id.action_catalogListsFragment_to_productFragment)
+    }
+
+    override fun onItemClick(id: String, isChecked: Boolean) {
+
     }
 
     private fun updateCatalog() {

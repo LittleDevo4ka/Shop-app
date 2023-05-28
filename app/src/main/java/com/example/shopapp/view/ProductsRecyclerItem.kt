@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.shopapp.R
+import com.example.shopapp.model.dataClasses.OnItemClickListener
 import com.example.shopapp.model.dataClasses.Product
 import com.example.shopapp.viewModel.CatalogViewModel
 import com.google.android.material.card.MaterialCardView
@@ -18,7 +19,7 @@ import kotlin.math.ceil
 
 class ProductsRecyclerItem(private val productsList: List<Product>, private val context: Context,
                            private val ref: StorageReference, density: Float,
-                           onClickListener: CategoriesRecyclerItem.OnItemClickListener) :
+                           onClickListener: OnItemClickListener) :
     RecyclerView.Adapter<ProductsRecyclerItem.MyViewHolder>() {
 
     private val productsTag = "ProductsRecyclerItem"
