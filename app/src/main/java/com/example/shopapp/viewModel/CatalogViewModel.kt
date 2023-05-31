@@ -4,7 +4,10 @@ import android.app.Application
 import android.icu.text.CaseMap.Title
 import android.util.Log
 import android.view.View
+import android.widget.CheckBox
+import android.widget.CompoundButton
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.repeatOnLifecycle
@@ -12,9 +15,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.shopapp.model.Repository
 import com.example.shopapp.model.dataClasses.Category
 import com.example.shopapp.model.dataClasses.Product
+import com.example.shopapp.model.dataClasses.ShoppingList
 import com.example.shopapp.model.dataClasses.TitleVisibility
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.snapshots
@@ -46,6 +52,9 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
     private val mutableCategory: MutableStateFlow<Category?> = MutableStateFlow(null)
     val stateCategory: StateFlow<Category?> = mutableCategory
 
+    private val mutableShoppingLists: MutableStateFlow<List<ShoppingList>?> = MutableStateFlow(null)
+    val stateShoppingLists: StateFlow<List<ShoppingList>?> = mutableShoppingLists
+
     private var categoryId: Int = -1
     private var productId: String = ""
 
@@ -54,7 +63,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
     val storageRef = storage.reference
 
     init {
-        repository = Repository.getRepository()
+        repository = Repository.getRepository(getApplication())
     }
 
     private fun getCategories() {
@@ -170,5 +179,31 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
             }
+    }
+
+    fun createShoppingList(listName: String, textLayout: TextInputLayout?, alertDialog: AlertDialog) {
+        repository.createShoppingList(listName, textLayout, alertDialog)
+    }
+
+    fun getShoppingLists(){
+        return repository.getShoppingLists(mutableShoppingLists)
+    }
+
+    fun deleteShoppingList(shoppingList: ShoppingList) {
+        repository.deleteShoppingList(shoppingList)
+    }
+
+    fun addItemIntoShoppingList(shoppingList: ShoppingList, product: Product) {
+        repository.addItemIntoShoppingList(shoppingList, product)
+        Log.i(tag, "item added")
+    }
+
+    fun deleteItemFromShoppingList(shoppingList: ShoppingList, product: Product) {
+        repository.deleteItemFromShoppingList(shoppingList, product)
+        Log.i(tag, "item deleted")
+    }
+
+    fun getRealtimeDatabase(): DatabaseReference {
+        return repository.database
     }
 }

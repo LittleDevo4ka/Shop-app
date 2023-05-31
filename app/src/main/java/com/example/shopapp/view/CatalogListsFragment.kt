@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.CheckBox
 import androidx.activity.OnBackPressedCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isGone
@@ -27,6 +28,7 @@ import com.example.shopapp.databinding.ProductsScreenBinding
 import com.example.shopapp.model.dataClasses.Category
 import com.example.shopapp.model.dataClasses.OnItemClickListener
 import com.example.shopapp.model.dataClasses.Product
+import com.example.shopapp.model.dataClasses.ShoppingList
 import com.example.shopapp.viewModel.CatalogViewModel
 import com.google.android.material.search.SearchView
 import kotlinx.coroutines.launch
@@ -243,9 +245,9 @@ class CatalogListsFragment : Fragment(), OnItemClickListener {
         findNavController().navigate(R.id.action_catalogListsFragment_to_productFragment)
     }
 
-    override fun onItemClick(id: String, isChecked: Boolean) {
-
+    override fun onItemClick(isChecked: Boolean, shoppingList: ShoppingList) {
     }
+
 
     private fun updateCatalog() {
         if (viewModel.getCategoryId() != -1) {

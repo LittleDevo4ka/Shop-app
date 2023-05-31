@@ -3,6 +3,7 @@ package com.example.shopapp.viewModel
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +13,7 @@ import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthMultiFactorException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
@@ -24,7 +26,9 @@ import kotlinx.coroutines.launch
 
 class AccountViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = Repository.getRepository()
+    private val tag = "AccountViewModel"
+
+    private val repository = Repository.getRepository(getApplication())
 
     private val fragmentNum: MutableStateFlow<Int> = MutableStateFlow(0)
     private val saveInfo: SharedPreferences
@@ -36,8 +40,19 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
     private val two_factor_auth_error = "Error: two-step authentication is required"
     private val email_alredy_in_use = "Error: the user already exists"
     private val weak_password = "Error: the password is too simple"
+    private val user_not_found = "Error: user not found"
 
     init {
+        val currentUser = repository.getCurrentUser()
+        if (currentUser != null) {
+            val email = currentUser.email
+            if (email != null) {
+                if (email.isNotEmpty()) {
+                    fragmentNum.value = 3
+                }
+            }
+        }
+
         saveInfo = application.getSharedPreferences("saveInfo", Context.MODE_PRIVATE)
     }
 
@@ -77,6 +92,8 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
                     passwordTextLayout.error = weak_password
                 } catch (e: FirebaseNetworkException) {
                     repeatPasswordTextLayout.error = network_error
+                } catch (e: Exception) {
+                    Log.w(tag, "createUserWithEmailAndPassword: " + e.message)
                 }
             }
         }
@@ -114,6 +131,11 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
                     } catch (e: FirebaseNetworkException) {
                         emailTextLayout.error = " "
                         passwordTextLayout.error = network_error
+                    } catch (e: FirebaseAuthInvalidUserException) {
+                        emailTextLayout.error = " "
+                        passwordTextLayout.error = user_not_found
+                    } catch (e: Exception) {
+                        Log.w(tag, "signInWithEmailAndPassword: " + e.message)
                     }
                 }
         }

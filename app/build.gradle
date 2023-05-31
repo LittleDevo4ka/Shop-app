@@ -17,6 +17,11 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        Properties properties = new Properties()
+        properties.load(project.rootProject.file("local.properties").newDataInputStream())
+
+        buildConfigField "String", "Database_URL", "\"${properties.getProperty("Database_URL")}\""
     }
     buildTypes {
         release {
@@ -33,6 +38,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 }
 
@@ -70,6 +76,8 @@ dependencies {
     //Cloud Storage
     implementation 'com.google.firebase:firebase-storage-ktx'
     implementation 'com.firebaseui:firebase-ui-storage:7.2.0'
+    //Realtime Database
+    implementation 'com.google.firebase:firebase-database-ktx'
 
     //SwipeRefreshLayout
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'

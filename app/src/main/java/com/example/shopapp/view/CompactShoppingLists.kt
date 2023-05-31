@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.CompoundButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -13,13 +14,14 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.shopapp.R
 import com.example.shopapp.model.dataClasses.OnItemClickListener
+import com.example.shopapp.model.dataClasses.Product
 import com.example.shopapp.model.dataClasses.ShoppingList
 import com.google.firebase.storage.StorageReference
 import kotlin.math.ceil
 
 class CompactShoppingLists (private val shoppingLists: List<ShoppingList>, private val context: Context,
                             private val ref: StorageReference, density: Float,
-                            onClickListener: OnItemClickListener):
+                            onClickListener: OnItemClickListener, private val product: Product):
     RecyclerView.Adapter<CompactShoppingLists.MyViewHolder>()  {
 
     private val categoriesTag = "CompactShoppingLists"
@@ -43,11 +45,32 @@ class CompactShoppingLists (private val shoppingLists: List<ShoppingList>, priva
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.cardCheckBox.setOnCheckedChangeListener{ _, isChecked ->
-            mainListener.onItemClick(shoppingLists[position].id, isChecked)
+        holder.cardCheckBox.isChecked = shoppingLists[position].products_id.contains(product.id)
+
+        holder.cardCheckBox.setOnCheckedChangeListener{ button, isChecked ->
+            if (button.isPressed) {
+                println("press")
+                mainListener.onItemClick(isChecked, shoppingLists[position])
+            }
+
         }
 
         holder.cardTitle.text = shoppingLists[position].name
+
+        if (shoppingLists[position].image_link != "default") {
+            val tempImg = ref.child(shoppingLists[position].image_link)
+            tempImg.downloadUrl.addOnCompleteListener {
+                if (it.isSuccessful) {
+                    if (it.result != null) {
+                        Glide.with(context).load(it.result).apply(glideOptions)
+                            .placeholder(R.drawable.placeholder)
+                            .into(holder.cardImage)
+                    }
+                }
+            }
+        } else {
+            holder.cardImage.setImageResource(R.drawable.placeholder)
+        }
     }
 
     override fun getItemCount(): Int {
