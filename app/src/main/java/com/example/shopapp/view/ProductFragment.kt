@@ -15,6 +15,9 @@ import com.example.shopapp.R
 import com.example.shopapp.databinding.FragmentProductBinding
 import com.example.shopapp.viewModel.CatalogViewModel
 import com.google.android.material.carousel.CarouselLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -100,7 +103,20 @@ class ProductFragment : Fragment() {
         }
 
         binding.plusFabProduct.setOnClickListener {
-            findNavController().navigate(R.id.action_productFragment_to_quickAddFragment)
+            val currentUser = Firebase.auth.currentUser
+            if (currentUser != null) {
+                val email = currentUser.email
+                if (!email.isNullOrEmpty()) {
+                    findNavController().navigate(R.id.action_productFragment_to_quickAddFragment)
+                } else {
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("You need to register.")
+                        .setMessage("To access this feature, you need to register.")
+                        .setPositiveButton("Okay") { _, _ ->
+                        }
+                        .show()
+                }
+            }
         }
     }
 

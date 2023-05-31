@@ -92,14 +92,21 @@ class Repository {
                     productsListRef.setValue(productList)
                     shoppingListRef.child("image_link").setValue("default")
                 } else if (shoppingList.products_id[0] != product.id) {
-                    val tempProductId = shoppingList.products_id.indexOf(product.id)
-                    productsListRef.child(tempProductId.toString()).removeValue()
+                    val newShoppingList: MutableList<String> = mutableListOf()
+                    newShoppingList.addAll(shoppingList.products_id)
+                    newShoppingList.remove(product.id)
+                    productsListRef.setValue(newShoppingList)
                 } else {
-                    productsListRef.child("0").removeValue()
-                    if (product.id.isNotEmpty()) {
+                    val newShoppingList: MutableList<String> = mutableListOf()
+                    newShoppingList.addAll(shoppingList.products_id)
+                    newShoppingList.remove(product.id)
+                    productsListRef.setValue(newShoppingList)
+
+                    val nextProduct = newShoppingList[0]
+                    if (nextProduct.isNotEmpty()) {
                         val db: FirebaseFirestore = Firebase.firestore
                         val docRef = db.collection("products")
-                            .document(product.id)
+                            .document(nextProduct)
 
                         docRef.get()
                             .addOnCompleteListener { task ->
@@ -109,7 +116,7 @@ class Repository {
                                         Log.w(tag, "getProduct: the product has been received")
                                         tempProduct.id = task.result.id
                                         shoppingListRef.child("image_link")
-                                            .setValue("products/${tempProduct.image_link}/1.jpg")
+                                            .setValue("products/${tempProduct.id}/1.jpg")
                                     }
                                 }
                             }

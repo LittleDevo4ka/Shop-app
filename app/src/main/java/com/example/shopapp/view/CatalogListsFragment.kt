@@ -31,6 +31,8 @@ import com.example.shopapp.model.dataClasses.Product
 import com.example.shopapp.model.dataClasses.ShoppingList
 import com.example.shopapp.viewModel.CatalogViewModel
 import com.google.android.material.search.SearchView
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
