@@ -17,7 +17,7 @@
         <ImageView
             android:id="@+id/shopping_list_card_image"
 
-            app:srcCompat="@drawable/ic_back_arrow"
+            app:srcCompat="@drawable/placeholder"
             android:layout_width="match_parent"
             android:layout_height="144dp"
             android:scaleType="centerCrop" />

@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shopapp.model.Repository
+import com.example.shopapp.model.dataClasses.ShoppingList
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.EmailAuthProvider
@@ -19,7 +20,9 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -33,6 +36,9 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
     private val fragmentNum: MutableStateFlow<Int> = MutableStateFlow(0)
     private val saveInfo: SharedPreferences
 
+    private val mutableShoppingLists: MutableStateFlow<List<ShoppingList>?> = MutableStateFlow(null)
+    val stateShoppingLists: StateFlow<List<ShoppingList>?> = mutableShoppingLists
+
     private val auth: FirebaseAuth = Firebase.auth
 
     private val wrong_password_or_email = "Error: invalid email or password"
@@ -41,6 +47,9 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
     private val email_alredy_in_use = "Error: the user already exists"
     private val weak_password = "Error: the password is too simple"
     private val user_not_found = "Error: user not found"
+
+    private val storage = Firebase.storage
+    val storageRef = storage.reference
 
     init {
         val currentUser = repository.getCurrentUser()
@@ -139,5 +148,9 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
         }
+    }
+
+    fun getShoppingLists(){
+        return repository.getShoppingLists(mutableShoppingLists)
     }
 }

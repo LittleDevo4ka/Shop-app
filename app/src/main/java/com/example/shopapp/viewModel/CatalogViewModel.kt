@@ -186,7 +186,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun getShoppingLists(){
-        return repository.getShoppingLists(mutableShoppingLists)
+        repository.getShoppingLists(mutableShoppingLists)
     }
 
     fun deleteShoppingList(shoppingList: ShoppingList) {

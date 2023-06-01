@@ -4,9 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.CheckBox
-import android.widget.CompoundButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -14,48 +12,42 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.shopapp.R
 import com.example.shopapp.model.dataClasses.OnItemClickListener
-import com.example.shopapp.model.dataClasses.Product
 import com.example.shopapp.model.dataClasses.ShoppingList
+import com.google.android.material.card.MaterialCardView
 import com.google.firebase.storage.StorageReference
 import kotlin.math.ceil
 
-class CompactShoppingLists (private val shoppingLists: List<ShoppingList>, private val context: Context,
-                            private val ref: StorageReference, density: Float,
-                            onClickListener: OnItemClickListener, private val product: Product):
-    RecyclerView.Adapter<CompactShoppingLists.MyViewHolder>()  {
+class BigShoppingLists(private val shoppingLists: List<ShoppingList>, private val context: Context,
+                       private val ref: StorageReference, density: Float,
+                       onClickListener: OnItemClickListener):
+    RecyclerView.Adapter<BigShoppingLists.MyViewHolder>() {
 
-    private val tag = "CompactShoppingLists"
-    private val imageSize = ceil(56 * density).toInt()
+    private val tag = "BigShoppingLists"
+    private val imageWidth = ceil(152 * density).toInt()
+    private val imageHeight = ceil(144 * density).toInt()
     private val glideOptions = RequestOptions()
-        .override(imageSize, imageSize)
+        .override(imageWidth, imageHeight)
 
     private var mainListener: OnItemClickListener = onClickListener
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val cardTitle: TextView = itemView.findViewById(R.id.name_small_shopping_card)
-        val cardImage: ImageView = itemView.findViewById(R.id.image_small_shopping_card)
-        val cardCheckBox: CheckBox = itemView.findViewById(R.id.checkbox_small_shopping_card)
+        val cardTitle: TextView = itemView.findViewById(R.id.shopping_list_card_title)
+        val cardImage: ImageView = itemView.findViewById(R.id.shopping_list_card_image)
+        val cardButton: MaterialCardView = itemView.findViewById(R.id.shopping_list_card_layout)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val itemView =
             LayoutInflater.from(parent.context)
-                .inflate(R.layout.small_shopping_list_card, parent, false)
+                .inflate(R.layout.shopping_list_card, parent, false)
         return MyViewHolder(itemView)
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.cardCheckBox.isChecked = shoppingLists[position].products_id.contains(product.id)
-
-        holder.cardCheckBox.setOnCheckedChangeListener{ button, isChecked ->
-            if (button.isPressed) {
-                println("press")
-                mainListener.onItemClick(isChecked, shoppingLists[position])
-            }
+        holder.cardTitle.text = shoppingLists[position].name
+        holder.cardButton.setOnClickListener {
 
         }
-
-        holder.cardTitle.text = shoppingLists[position].name
 
         if (shoppingLists[position].image_link != "default") {
             val tempImg = ref.child(shoppingLists[position].image_link)

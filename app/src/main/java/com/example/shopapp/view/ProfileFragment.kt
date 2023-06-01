@@ -18,8 +18,12 @@ import androidx.core.view.isEmpty
 import androidx.core.view.marginStart
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.*
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.shopapp.R
 import com.example.shopapp.databinding.*
+import com.example.shopapp.model.dataClasses.OnItemClickListener
+import com.example.shopapp.model.dataClasses.Product
+import com.example.shopapp.model.dataClasses.ShoppingList
 import com.example.shopapp.viewModel.AccountViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.async
@@ -29,7 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.ceil
 
-class ProfileFragment : Fragment() {
+class ProfileFragment : Fragment(), OnItemClickListener {
 
     private lateinit var binding: FragmentProfileBinding
     private lateinit var viewModel: AccountViewModel
@@ -236,31 +240,26 @@ class ProfileFragment : Fragment() {
         val profileBinding = ProfileBinding.inflate(layoutInflater,
             binding.placeForProfile, false)
 
-        var startMargin = 36 * ds
-        val layoutMargin = 176 * ds
-        val layoutWidth = 152 * ds
-        val layoutHeight = 200 * ds
+        val adapterList: MutableList<ShoppingList> = mutableListOf()
+        val myAdapter = BigShoppingLists(adapterList, requireContext(), viewModel.storageRef, ds, this)
 
-        for(i in 1 .. 3) {
-            val shoppingListCardBinding = ShoppingListCardBinding.inflate(layoutInflater,
-                profileBinding.placeForShoppingLists, false)
+        profileBinding.recyclerViewShoppingListsProfile.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        profileBinding.recyclerViewShoppingListsProfile.adapter = myAdapter
 
-            val params = ConstraintLayout.LayoutParams(
-                ceil(layoutWidth).toInt(), ceil(layoutHeight).toInt()
-            )
-            params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-            params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-            params.marginStart = ceil(startMargin).toInt()
-            if(i == 3) {
-                params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                params.marginEnd = ceil(36 * ds).toInt()
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.stateShoppingLists.collect {
+                    adapterList.clear()
+
+                    if (it != null) {
+                        adapterList.addAll(it)
+                    }
+                    myAdapter.notifyDataSetChanged()
+                }
             }
-            shoppingListCardBinding.shoppingListCardLayout.layoutParams = params
-
-            profileBinding.placeForShoppingLists.addView(shoppingListCardBinding.root)
-
-            startMargin += layoutMargin
         }
+
 
         binding.backButtonProfile.visibility = View.GONE
         val params = (binding.wasteidProfileTitleTv.layoutParams as ConstraintLayout.LayoutParams)
@@ -268,10 +267,20 @@ class ProfileFragment : Fragment() {
         binding.wasteidProfileTitleTv.layoutParams = params
 
         binding.placeForProfile.addView(profileBinding.root)
+        viewModel.getShoppingLists()
     }
 
     override fun onPause() {
         super.onPause()
 
+    }
+
+    override fun onItemClick(id: Int) {
+    }
+
+    override fun onItemClick(id: String) {
+    }
+
+    override fun onItemClick(isChecked: Boolean, shoppingList: ShoppingList) {
     }
 }

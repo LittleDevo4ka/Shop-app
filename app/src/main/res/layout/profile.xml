@@ -17,24 +17,15 @@
         android:layout_marginTop="20dp"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginStart="20dp"/>
-    
-    <HorizontalScrollView
-        android:id="@+id/wasteid_horizontal_scroll_view_profile"
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView_shopping_lists_profile"
 
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:scrollbars="none"
+        android:layout_height="wrap_content"
 
         app:layout_constraintTop_toBottomOf="@id/wasteid_your_shopping_lists_tv_profile"
         android:layout_marginTop="16dp"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/place_for_shopping_lists"
-
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </HorizontalScrollView>
+        app:layout_constraintStart_toStartOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
