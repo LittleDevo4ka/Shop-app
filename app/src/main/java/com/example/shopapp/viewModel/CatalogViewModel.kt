@@ -149,7 +149,7 @@ class CatalogViewModel(application: Application) : AndroidViewModel(application)
                     if (task.isSuccessful) {
                         val tempProduct = task.result.toObject(Product::class.java)
                         if (tempProduct != null) {
-                            Log.w(tag, "getProduct: the product has been received")
+                            Log.i(tag, "getProduct: the product has been received")
                             tempProduct.id = task.result.id
                             mutableProduct.value = tempProduct
                         }

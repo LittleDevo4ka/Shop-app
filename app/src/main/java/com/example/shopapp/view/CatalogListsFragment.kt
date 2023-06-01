@@ -250,6 +250,12 @@ class CatalogListsFragment : Fragment(), OnItemClickListener {
     override fun onItemClick(isChecked: Boolean, shoppingList: ShoppingList) {
     }
 
+    override fun onItemClick(shoppingList: ShoppingList) {
+    }
+
+    override fun deleteProductFromShoppingList(product: Product) {
+    }
+
 
     private fun updateCatalog() {
         if (viewModel.getCategoryId() != -1) {

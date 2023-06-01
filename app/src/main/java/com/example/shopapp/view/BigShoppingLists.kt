@@ -46,7 +46,7 @@ class BigShoppingLists(private val shoppingLists: List<ShoppingList>, private va
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         holder.cardTitle.text = shoppingLists[position].name
         holder.cardButton.setOnClickListener {
-
+            mainListener.onItemClick(shoppingLists[position])
         }
 
         if (shoppingLists[position].image_link != "default") {

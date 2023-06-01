@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shopapp.model.Repository
+import com.example.shopapp.model.dataClasses.Product
 import com.example.shopapp.model.dataClasses.ShoppingList
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.FirebaseNetworkException
@@ -19,6 +20,9 @@ import com.google.firebase.auth.FirebaseAuthMultiFactorException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +43,9 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
     private val mutableShoppingLists: MutableStateFlow<List<ShoppingList>?> = MutableStateFlow(null)
     val stateShoppingLists: StateFlow<List<ShoppingList>?> = mutableShoppingLists
 
+    private val mutableShoppingListProducts: MutableStateFlow<List<Product>?> = MutableStateFlow(null)
+    val stateShoppingListProducts: StateFlow<List<Product>?> = mutableShoppingListProducts
+
     private val auth: FirebaseAuth = Firebase.auth
 
     private val wrong_password_or_email = "Error: invalid email or password"
@@ -48,6 +55,7 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
     private val weak_password = "Error: the password is too simple"
     private val user_not_found = "Error: user not found"
 
+    private val db: FirebaseFirestore = Firebase.firestore
     private val storage = Firebase.storage
     val storageRef = storage.reference
 
@@ -152,5 +160,47 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
 
     fun getShoppingLists(){
         return repository.getShoppingLists(mutableShoppingLists)
+    }
+
+    fun getAllProductsFromShoppingList(shoppingList: ShoppingList) {
+        mutableShoppingListProducts.value = null
+        val productsList: MutableList<Product> = mutableListOf()
+
+        var productId: String
+        for (i in shoppingList.products_id.indices) {
+            productId = shoppingList.products_id[i]
+
+            if (productId.isNotEmpty()) {
+                val db: FirebaseFirestore = Firebase.firestore
+                val docRef = db.collection("products")
+                    .document(productId)
+
+                docRef.get()
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val tempProduct = task.result.toObject(Product::class.java)
+                            if (tempProduct != null) {
+                                Log.i(tag, "getProduct: the product has been received")
+                                tempProduct.id = task.result.id
+                                productsList.add(tempProduct)
+                                if (i == shoppingList.products_id.size-1) {
+                                    mutableShoppingListProducts.value = productsList.toList()
+                                }
+                            }
+                        }
+                    }
+                    .addOnFailureListener {
+                        Log.w(tag, "getProduct: error, unable to get the product")
+                    }
+            }
+        }
+    }
+
+    fun getRealtimeDatabase(): DatabaseReference {
+        return repository.database
+    }
+
+    fun deleteItemFromShoppingList(shoppingList: ShoppingList, product: Product) {
+        repository.deleteItemFromShoppingList(shoppingList, product)
     }
 }

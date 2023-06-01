@@ -144,6 +144,12 @@ class QuickAddFragment : Fragment(), OnItemClickListener {
         }
     }
 
+    override fun onItemClick(shoppingList: ShoppingList) {
+    }
+
+    override fun deleteProductFromShoppingList(product: Product) {
+    }
+
     private val childEventListener = object: ChildEventListener{
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
             viewModel.getShoppingLists()
@@ -164,6 +170,6 @@ class QuickAddFragment : Fragment(), OnItemClickListener {
         override fun onCancelled(error: DatabaseError) {
             println("Error, something went wrong")
         }
-
     }
+
 }

@@ -163,6 +163,9 @@ class Repository {
                     database.child("users").child(currentUser.uid)
                         .get().addOnCompleteListener {  task ->
                             if (task.isSuccessful) {
+                                if (task.result.value.toString() == "null") {
+                                    return@addOnCompleteListener
+                                }
 
                                 val shoppingLists: MutableList<ShoppingList> = mutableListOf()
                                 val shoppingListsStr = task.result.value.toString()

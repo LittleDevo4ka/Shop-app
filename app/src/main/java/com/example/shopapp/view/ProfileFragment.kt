@@ -26,6 +26,11 @@ import com.example.shopapp.model.dataClasses.Product
 import com.example.shopapp.model.dataClasses.ShoppingList
 import com.example.shopapp.viewModel.AccountViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
@@ -41,6 +46,8 @@ class ProfileFragment : Fragment(), OnItemClickListener {
     private val tag: String = "ProfileFragment:"
 
     private var ds: Float = 0f
+
+    private var mainShoppingList: ShoppingList? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -270,9 +277,94 @@ class ProfileFragment : Fragment(), OnItemClickListener {
         viewModel.getShoppingLists()
     }
 
-    override fun onPause() {
-        super.onPause()
+    private fun addShoppingListLayout() {
+        val tempShoppingList = mainShoppingList ?: return
 
+        binding.placeForProfile.removeAllViews()
+        binding.wasteidProfileTitleTv.text = tempShoppingList.name
+        binding.backButtonProfile.visibility = View.VISIBLE
+        val params = (binding.wasteidProfileTitleTv.layoutParams as ConstraintLayout.LayoutParams)
+        params.marginStart = ceil(64 * ds).toInt()
+        binding.wasteidProfileTitleTv.layoutParams = params
+
+        val shoppingListBinding = ShoppingListLayoutBinding
+            .inflate(layoutInflater, binding.placeForProfile, false)
+
+        val adapterList: MutableList<Product> = mutableListOf()
+        val myAdapter = ShoppingListProduct(adapterList, requireContext(), viewModel.storageRef, ds, this)
+
+        shoppingListBinding.recyclerViewShoppingListContent.layoutManager =
+            LinearLayoutManager(requireContext())
+        shoppingListBinding.recyclerViewShoppingListContent.adapter = myAdapter
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.stateShoppingListProducts.collect {
+                    adapterList.clear()
+
+                    if (it != null) {
+                        adapterList.addAll(it)
+                    }
+                    myAdapter.notifyDataSetChanged()
+                }
+            }
+        }
+
+        binding.placeForProfile.addView(shoppingListBinding.root)
+        viewModel.getAllProductsFromShoppingList(tempShoppingList)
+
+        binding.backButtonProfile.setOnClickListener {
+            binding.wasteidProfileTitleTv.text = "Profile"
+            binding.backButtonProfile.visibility = View.GONE
+            val tempParams = (binding.wasteidProfileTitleTv.layoutParams as ConstraintLayout.LayoutParams)
+            tempParams.marginStart = ceil(16 * ds).toInt()
+            binding.wasteidProfileTitleTv.layoutParams = tempParams
+
+            addProfile()
+        }
+
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser != null) {
+            val email = currentUser.email
+            if (!email.isNullOrEmpty()) {
+                viewModel.getRealtimeDatabase().child("users").child(currentUser.uid)
+                    .addChildEventListener(childEventListener)
+            }
+        }
+    }
+
+    private val childEventListener = object: ChildEventListener {
+        override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+            val tempShoppingList = mainShoppingList
+            if (tempShoppingList != null) {
+                viewModel.getAllProductsFromShoppingList(tempShoppingList)
+            }
+        }
+
+        override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+            val tempShoppingList = mainShoppingList
+            if (tempShoppingList != null) {
+                viewModel.getAllProductsFromShoppingList(tempShoppingList)
+            }
+        }
+
+        override fun onChildRemoved(snapshot: DataSnapshot) {
+            val tempShoppingList = mainShoppingList
+            if (tempShoppingList != null) {
+                viewModel.getAllProductsFromShoppingList(tempShoppingList)
+            }
+        }
+
+        override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+            val tempShoppingList = mainShoppingList
+            if (tempShoppingList != null) {
+                viewModel.getAllProductsFromShoppingList(tempShoppingList)
+            }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            println("Error, something went wrong")
+        }
     }
 
     override fun onItemClick(id: Int) {
@@ -282,5 +374,17 @@ class ProfileFragment : Fragment(), OnItemClickListener {
     }
 
     override fun onItemClick(isChecked: Boolean, shoppingList: ShoppingList) {
+    }
+
+    override fun onItemClick(shoppingList: ShoppingList) {
+        mainShoppingList = shoppingList
+        addShoppingListLayout()
+    }
+
+    override fun deleteProductFromShoppingList(product: Product) {
+        val tempShoppingList = mainShoppingList
+        if (tempShoppingList != null) {
+            viewModel.deleteItemFromShoppingList(tempShoppingList, product)
+        }
     }
 }
